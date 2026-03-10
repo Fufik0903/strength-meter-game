@@ -1,0 +1,9 @@
+{
+  "appId": "com.example.strengthmeter",
+  "appName": "strength-meter-game",
+  "webDir": "dist",
+  "server": {
+    "url": "http://192.168.0.158:8080",
+    "cleartext": true
+  }
+}

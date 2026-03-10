@@ -5,9 +5,13 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "build:android": "npm run build && npx cap copy",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/cli": "^7.6.0",
+    "@capacitor/core": "^8.2.0",
     "core-js": "^3.8.3",
     "vue": "^3.2.13"
   },
