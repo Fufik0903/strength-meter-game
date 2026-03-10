@@ -4,7 +4,7 @@
       <div class="scale-flask">
         <img src="@/assets/scale.png" alt="Колба" />
       </div>
-      <div class="scale-fill" :style="{ height: props.hitPower + '%' }" />
+      <div class="scale-fill" :style="{ height: hitPower + '%' }" />
       <div class="scale-marks">
         <img src="@/assets/scale-1.png" alt="Шкала" />
       </div>
@@ -12,7 +12,7 @@
   </div>
 </template>
 <script setup>
-  const props = defineProps({
+  defineProps({
     hitPower: {
       type: Number,
       required: true
@@ -54,7 +54,7 @@
 
   .scale-fill {
     position: absolute;
-    bottom: 3px;
+    bottom: 2px;
     left: 5px;
     width: 38px;
     height: 0%;

@@ -69,15 +69,21 @@
     gameStatus.value = 'playing'
     currentButton.value = buttonDefault
     hitResult.value = 0
+    hitPower.value = 0
     emit('updateData', hitResult.value)
     animateHummer({
       value1: 'translate(10px, -10px) rotate(-43.16deg)',
       value2: 'translate(10px, -10px) rotate(0deg)'
     })
-    gameLoop()
+    // задержка для обновления отображения шкалы. опционально
+    setTimeout(() => {
+      gameLoop()
+    }, 300)
   }
   // функция нажатия на кнопку "Удар"
   function handleClickHit() {
+    const currentPower = hitPower.value
+    hitResult.value = currentPower
     gameStatus.value = 'result'
     currentButton.value = buttonActive
     if (gameInterval) {
@@ -88,44 +94,36 @@
       cancelAnimationFrame(animationFrame)
       animationFrame = null
     }
+
     animateHummer({
       value1: 'translate(10px, -10px) rotate(0deg)',
       value2: 'translate(-50px, -30px) rotate(-90deg)'
     })
-    hitResult.value = hitPower.value
+    // таймаут для последовательности анимации (удар молота - изменение шкалы)
     setTimeout(() => {
       emit('updateData', hitResult.value)
     }, 500)
   }
   // функция игрового цикла
   function gameLoop() {
-    let direction = 1 // 1 - вверх, -1 - вниз
-
+    let direction = 1
     function animate() {
       if (gameStatus.value !== 'playing') return
-
-      // Плавно меняем значение
       let change = Math.random() * 3 * direction
-      console.log(change, hitPower.value)
       hitPower.value += change
-
-      // Меняем направление при достижении границ
       if (hitPower.value >= 100) {
-        hitPower.value = 100
+        hitPower.value = 98
         direction = -1
       } else if (hitPower.value <= 0) {
         hitPower.value = 0
         direction = 1
       }
-
-      // Иногда случайно меняем направление для хаотичности
       if (Math.random() < 0.05) {
         direction *= -1
       }
 
       requestAnimationFrame(animate)
     }
-
     animate()
   }
   // функция анимации молота
