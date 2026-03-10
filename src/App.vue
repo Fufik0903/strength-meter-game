@@ -15,7 +15,6 @@
   const divisions = 8
   const divisionCount = total / divisions
   const changeMeasure = (data) => {
-    console.log(data, 'data')
     if (data < 0 || data >= total) return null
     currentDivision.value = Math.round(data / divisionCount)
   }

@@ -23,8 +23,14 @@
             <span :style="{ color: '#ff4646' }">Рубин</span>
           </span>
         </div>
-        <button v-if="isNewGame" class="game-button_" @click="handleClickHit">Удар</button>
-        <button v-if="!isNewGame" class="game-button_" @click="handleClickNewGame">
+        <button v-if="gameStatus == `playing`" class="game-button_" @click="handleClickHit">
+          Удар
+        </button>
+        <button
+          v-if="gameStatus == `new` || gameStatus === `result`"
+          class="game-button_"
+          @click="handleClickNewGame"
+        >
           новая игра
         </button>
       </div>
@@ -44,7 +50,6 @@
   import Robot3 from '@/assets/robot_3.png'
 
   const gameStatus = ref('new')
-  const isNewGame = ref(false)
   const hitPower = ref(0)
   const hitResult = ref(0)
   const resultScore = ref(0)
@@ -62,7 +67,6 @@
   // функция нажатия на кнопку "Новая игра"
   function handleClickNewGame() {
     gameStatus.value = 'playing'
-    isNewGame.value = true
     currentButton.value = buttonDefault
     hitResult.value = 0
     emit('updateData', hitResult.value)
@@ -75,7 +79,6 @@
   // функция нажатия на кнопку "Удар"
   function handleClickHit() {
     gameStatus.value = 'result'
-    isNewGame.value = false
     currentButton.value = buttonActive
     if (gameInterval) {
       clearInterval(gameInterval)
@@ -90,16 +93,40 @@
       value2: 'translate(-50px, -30px) rotate(-90deg)'
     })
     hitResult.value = hitPower.value
-    emit('updateData', hitResult.value)
+    setTimeout(() => {
+      emit('updateData', hitResult.value)
+    }, 500)
   }
   // функция игрового цикла
   function gameLoop() {
-    if (gameInterval) {
-      clearInterval(gameInterval)
+    let direction = 1 // 1 - вверх, -1 - вниз
+
+    function animate() {
+      if (gameStatus.value !== 'playing') return
+
+      // Плавно меняем значение
+      let change = Math.random() * 3 * direction
+      console.log(change, hitPower.value)
+      hitPower.value += change
+
+      // Меняем направление при достижении границ
+      if (hitPower.value >= 100) {
+        hitPower.value = 100
+        direction = -1
+      } else if (hitPower.value <= 0) {
+        hitPower.value = 0
+        direction = 1
+      }
+
+      // Иногда случайно меняем направление для хаотичности
+      if (Math.random() < 0.05) {
+        direction *= -1
+      }
+
+      requestAnimationFrame(animate)
     }
-    gameInterval = setInterval(() => {
-      hitPower.value = Math.round(Math.random() * 100)
-    }, 300)
+
+    animate()
   }
   // функция анимации молота
   function animateHummer(animationValues) {
