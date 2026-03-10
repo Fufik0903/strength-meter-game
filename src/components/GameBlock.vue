@@ -1,45 +1,35 @@
 <template>
   <div class="game-block-container">
-    <StrengthScale :fillHeight="fillHeight" />
+    <StrengthScale :hit-power="hitPower" />
     <div class="game-content">
       <div class="game-tools">
         <div class="game-button">
           <img :src="currentButton" />
         </div>
-        <div class="game-hammer" ref="hammerRef">
+        <div ref="hammerRef" class="game-hammer">
           <img src="@/assets/hammer.png" />
         </div>
       </div>
       <div class="game-start">
         <div class="game-text">
-          <span v-if="isStartActiveButton && !isHitButtonActive">
-            Привет!<br />проверим твою силу!
-          </span>
-          <span v-else-if="isHitButtonActive && !isStartActiveButton">
-            Жми на кнопку в нужный момент!
-          </span>
-          <span v-else-if="isHitButtonActive && isStartActiveButton && count < 94">
+          <span v-if="gameStatus == `new`"> Привет!<br />проверим твою силу! </span>
+          <span v-else-if="gameStatus == `playing`"> Жми на кнопку в нужный момент! </span>
+          <span v-else-if="gameStatus == `result` && resultScore < 95">
             Неплохо! Попробуй ещё раз.
           </span>
-          <span v-else-if="isHitButtonActive && isStartActiveButton && count >= 94">
+          <span v-else-if="gameStatus == `result` && resultScore >= 95">
             ВОТ ЭТО СИЛА!<br />
             Ты&nbsp;выбил&nbsp;главный&nbsp;приз!<br />
             <span :style="{ color: '#ff4646' }">Рубин</span>
           </span>
         </div>
-        <button
-          class="game-button_"
-          @click="handleClickHit"
-          v-if="isHitButtonActive && !isStartActiveButton"
-        >
-          Удар
-        </button>
-        <button class="game-button_" @click="handleClickNewGame" v-if="isStartActiveButton">
+        <button v-if="isNewGame" class="game-button_" @click="handleClickHit">Удар</button>
+        <button v-if="!isNewGame" class="game-button_" @click="handleClickNewGame">
           новая игра
         </button>
       </div>
     </div>
-    <RobotBlock :imageUrl="imageUrl" />
+    <RobotBlock :image-url="imageUrl" />
   </div>
 </template>
 
@@ -53,52 +43,40 @@
   import Robot2 from '@/assets/robot_2.png'
   import Robot3 from '@/assets/robot_3.png'
 
-  const isStartActiveButton = ref(true)
-  const isHitButtonActive = ref(false)
-  const count = ref(0)
-  const fillHeight = ref(0)
+  const gameStatus = ref('new')
+  const isNewGame = ref(false)
+  const hitPower = ref(0)
+  const hitResult = ref(0)
+  const resultScore = ref(0)
   const currentButton = ref(buttonDefault)
   const hammerRef = ref(null)
-
   let gameInterval = null
   let animationFrame = null
-  let targetValue = 0
   const emit = defineEmits(['updateData'])
+  // Выбор картинки робота
   const imageUrl = computed(() => {
-    if (count.value >= 95) return Robot3
-    if (count.value > 0) return Robot2
+    if (hitResult.value >= 95) return Robot3
+    if (hitResult.value > 0) return Robot2
     return Robot1
   })
-
+  // функция нажатия на кнопку "Новая игра"
   function handleClickNewGame() {
-    isStartActiveButton.value = false
-    isHitButtonActive.value = true
-    count.value = 0
-    fillHeight.value = 0
-    targetValue = 0
+    gameStatus.value = 'playing'
+    isNewGame.value = true
     currentButton.value = buttonDefault
-
-    emit('updateData', count.value)
-    const hammer = hammerRef.value
-    if (!hammer) return
-    hammer.getAnimations().forEach((anim) => anim.cancel())
-    hammer.animate(
-      [
-        { transform: 'translate(10px, -10px) rotate(-43.16deg)' },
-        { transform: 'translate(10px, -10px) rotate(0deg)' }
-      ],
-      {
-        duration: 500,
-        fill: 'forwards',
-        easing: 'ease-out'
-      }
-    )
+    hitResult.value = 0
+    emit('updateData', hitResult.value)
+    animateHummer({
+      value1: 'translate(10px, -10px) rotate(-43.16deg)',
+      value2: 'translate(10px, -10px) rotate(0deg)'
+    })
     gameLoop()
   }
+  // функция нажатия на кнопку "Удар"
   function handleClickHit() {
-    isHitButtonActive.value = true
-    isStartActiveButton.value = true
-
+    gameStatus.value = 'result'
+    isNewGame.value = false
+    currentButton.value = buttonActive
     if (gameInterval) {
       clearInterval(gameInterval)
       gameInterval = null
@@ -107,50 +85,33 @@
       cancelAnimationFrame(animationFrame)
       animationFrame = null
     }
-
-    const hammer = hammerRef.value
-    if (!hammer) return
-
-    hammer.animate(
-      [
-        { transform: 'translate(10px, -10px) rotate(0deg)' },
-        { transform: 'translate(-50px, -30px) rotate(-90deg)' }
-      ],
-      {
-        duration: 500,
-        fill: 'forwards',
-        easing: 'ease-in'
-      }
-    )
-
-    emit('updateData', count.value)
-    setTimeout(() => {
-      currentButton.value = buttonActive
-    }, 500)
+    animateHummer({
+      value1: 'translate(10px, -10px) rotate(0deg)',
+      value2: 'translate(-50px, -30px) rotate(-90deg)'
+    })
+    hitResult.value = hitPower.value
+    emit('updateData', hitResult.value)
   }
-
+  // функция игрового цикла
   function gameLoop() {
-    if (gameInterval) clearInterval(gameInterval)
-    if (animationFrame) cancelAnimationFrame(animationFrame)
-    gameInterval = setInterval(() => {
-      if (isHitButtonActive.value && !isStartActiveButton.value) {
-        targetValue = 95 //Math.round(Math.random() * 100)
-        fillHeight.value = targetValue - 4
-      }
-    }, 300)
-    function animate() {
-      if (isHitButtonActive.value && !isStartActiveButton.value) {
-        const diff = targetValue - count.value
-        if (Math.abs(diff) > 0.5) {
-          count.value += diff * 0.1
-        } else {
-          count.value = targetValue
-        }
-      }
-      count.value = 95
-      animationFrame = requestAnimationFrame(animate)
+    if (gameInterval) {
+      clearInterval(gameInterval)
     }
-    animate()
+    gameInterval = setInterval(() => {
+      hitPower.value = Math.round(Math.random() * 100)
+    }, 300)
+  }
+  // функция анимации молота
+  function animateHummer(animationValues) {
+    const hammer = hammerRef.value
+    const { value1, value2 } = animationValues
+    if (!hammer || !animationValues) return
+    hammer.getAnimations().forEach((anim) => anim.cancel())
+    hammer.animate([{ transform: value1 }, { transform: value2 }], {
+      duration: 500,
+      fill: 'forwards',
+      easing: 'ease-out'
+    })
   }
 </script>
 

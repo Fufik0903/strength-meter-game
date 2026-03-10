@@ -1,22 +1,23 @@
 <template>
   <div class="scale-wrapper">
     <div class="scale">
-      <!-- Колба (задний фон) -->
       <div class="scale-flask">
         <img src="@/assets/scale.png" alt="Колба" />
       </div>
-      <div class="scale-fill" :style="{ height: fillHeight + '%' }"></div>
+      <div class="scale-fill" :style="{ height: props.hitPower + '%' }" />
       <div class="scale-marks">
         <img src="@/assets/scale-1.png" alt="Шкала" />
       </div>
     </div>
   </div>
 </template>
-<script>
-  export default {
-    name: 'StrengthScale',
-    props: ['fillHeight']
-  }
+<script setup>
+  const props = defineProps({
+    hitPower: {
+      type: Number,
+      required: true
+    }
+  })
 </script>
 
 <style scoped>

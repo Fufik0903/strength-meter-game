@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <MeasureBlock :currentDivision="currentDivision" />
+    <MeasureBlock :current-division="currentDivision" />
     <GameBlock @updateData="changeMeasure" />
   </div>
 </template>
@@ -15,10 +15,9 @@
   const divisions = 8
   const divisionCount = total / divisions
   const changeMeasure = (data) => {
+    console.log(data, 'data')
     if (data < 0 || data >= total) return null
     currentDivision.value = Math.round(data / divisionCount)
-
-    console.log(data, divisionCount)
   }
 </script>
 

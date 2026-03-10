@@ -1,10 +1,15 @@
 <template>
   <div class="robot">
-    <img :src="imageUrl" />
+    <img :src="props.imageUrl" />
   </div>
 </template>
-<script>
-  export default { name: 'RobotBlock', props: ['imageUrl'] }
+<script setup>
+  const props = defineProps({
+    imageUrl: {
+      type: String,
+      required: true
+    }
+  })
 </script>
 <style scoped>
   .robot {
